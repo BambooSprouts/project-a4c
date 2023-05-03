@@ -18,7 +18,7 @@ mc.world.events.entityHurt.subscribe(ev => {
 
 mc.system.runInterval(() => {
 	if (TagStatus.isExecuting) {
-		TagStatus.survivingPlayer.forEach(player => player.addEffect(mc.MinecraftEffectTypes.weakness, 100, 0, false));
+		TagStatus.survivingPlayer.filter(player => player !== TagStatus.tagger).forEach(player => player.addEffect(mc.MinecraftEffectTypes.weakness, 100, 9, false));
 
 		if (TagStatus.taggerLimit === 20) mcLib.runCommands(TagStatus.tagger, "inputpermission set @s movement enabled");
 
