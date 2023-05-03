@@ -37,7 +37,7 @@ export class TagStatus {
 
 export function tagStart() {
 	TagStatus.randomlyTagged();
-	// mcLib.getPlayerList().forEach(player =>.teleport(new mc.Vector(0, 100, 0), mcLib.dimension));
+	mcLib.getPlayerList().forEach(player => player.teleport(new mc.Vector(130, -60, 50), mcLib.dimension, 0, 0));
 
 	mcLib.runCommands(TagStatus.tagger, "inputpermission set @s movement disabled");
 	mcLib.getPlayerList().forEach(player => player.addEffect(mc.MinecraftEffectTypes.weakness, 100, 0, false));
@@ -55,5 +55,5 @@ export function tagEnd() {
 
 	mcLib.runCommands(mcLib.dimension, "title @a title Game Over!!", "inputpermission set @a movement enabled", "replaceitem entity @a slot.armor.head 0 air 1 0");
 
-	// mcLib.getPlayerList().forEach(player => player.teleport(new mc.Vector(2, -60, 4)));
+	mcLib.getPlayerList().forEach(player => player.teleport(new mc.Vector(2, -60, 4), mcLib.dimension, 0, 0));
 }
