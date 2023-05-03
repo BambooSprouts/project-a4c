@@ -26,7 +26,7 @@ export class TagStatus {
 		return this.taggerN;
 	}
 	static get survivingPlayer() {
-		return mcLib.getPlayerList().map(player => this.deceasedPlayer.includes(player) ? null : player).filter(player => player !== this.tagger).filter(Boolean);
+		return mcLib.getPlayerList().map(player => this.deceasedPlayer.includes(player) ? null : player).filter(Boolean);
 	}
 	static randomlyTagged() {
 		this.tagger = this.survivingPlayer[Math.floor(Math.random() * this.survivingPlayer.length)];
@@ -41,7 +41,7 @@ export function tagStart() {
 
 	mcLib.runCommands(TagStatus.tagger, "inputpermission set @s movement disabled");
 	mcLib.getPlayerList().forEach(player => player.addEffect(mc.MinecraftEffectTypes.weakness, 100, 0, false));
-	TagStatus.survivingPlayer.forEach(player => player.addEffect(mc.MinecraftEffectTypes.invisibility, 100, 0, false));
+	TagStatus.survivingPlayer.filter(player => player !== TagStatus.tagger).forEach(player => player.addEffect(mc.MinecraftEffectTypes.invisibility, 100, 0, false));
 
 	TagStatus.isExecuting = true;
 }
