@@ -9,7 +9,7 @@ mc.system.events.beforeWatchdogTerminate.subscribe(ev => ev.cancel = true);
 
 mc.system.events.scriptEventReceive.subscribe(ev => {
 	switch (ev.id) {
-		case "tag:start": return TagStatus.isExecuting ? tagStart() : null;
+		case "tag:start": return !TagStatus.isExecuting ? tagStart() : null;
 		case "tag:end": return tagEnd();
 	}
 });
