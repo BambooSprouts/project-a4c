@@ -14,10 +14,10 @@ export class TagStatus {
 	static maxTaggerLimit = 25;
 	static deceasedPlayer = [];
 	static get invincibleTick() {
-		return (this.maxTaggerLimit - Math.floor(this.maxTaggerLimit / 5)) * 20;
+		return Math.floor(this.maxTaggerLimit / 5) * 20;
 	}
 	static get isInvincible() {
-		return this.taggerLimit > this.invincibleTick / 20;
+		return this.taggerLimit > this.maxTaggerLimit - this.invincibleTick / 20;
 	}
 	static get survivingPlayer() {
 		return mcLib.getPlayerList().map(player => this.deceasedPlayer.includes(player) ? null : player).filter(Boolean);
