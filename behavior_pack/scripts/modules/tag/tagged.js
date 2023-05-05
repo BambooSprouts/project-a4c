@@ -8,9 +8,8 @@ const mcLib = new World("overworld");
 
 mc.world.events.entityHurt.subscribe(ev => {
 	if (TagStatus.isExecuting) {
-		TagStatus.tagger = ev.hurtEntity;
+		TagStatus.setTagger(ev.hurtEntity);
 
-		mcLib.runCommands(ev.hurtEntity, "inputpermission set @s movement disabled");
 		ev.damageSource.damagingEntity.addEffect(mc.MinecraftEffectTypes.invisibility, 100, 0, false);
 	}
 	else return;
@@ -18,23 +17,22 @@ mc.world.events.entityHurt.subscribe(ev => {
 
 mc.system.runInterval(() => {
 	if (TagStatus.isExecuting) {
-		TagStatus.survivingPlayer.filter(player => player !== TagStatus.tagger).forEach(player => player.addEffect(mc.MinecraftEffectTypes.weakness, 100, 9, false));
+		TagStatus.tagger.addEffect(mc.MinecraftEffectTypes.speed, 100, 1, false);
+		TagStatus.escapingPlayer.forEach(player => player.addEffect(mc.MinecraftEffectTypes.weakness, 100, 9, false));
 
-		if (TagStatus.taggerLimit === 20) mcLib.runCommands(TagStatus.tagger, "inputpermission set @s movement enabled");
+		if (!TagStatus.isInvincible) mcLib.runCommands(TagStatus.tagger, "inputpermission set @s movement enabled");
 
-		if (TagStatus.taggerLimit > 0) {
-			TagStatus.taggerLimit--;
-		}
+		if (TagStatus.taggerLimit > 0) TagStatus.taggerLimit--;
 		else {
 			TagStatus.tagger.kill();
 			TagStatus.deceasedPlayer.push(TagStatus.tagger);
 
 			if (TagStatus.survivingPlayer.length > 1) {
 				if (TagStatus.taggerLimit > 5) {
-					if (TagStatus.TagStatus.taggerLimitDecrease) TagStatus.taggerLimit = --TagStatus.maxTaggerLimit;
+					if (TagStatus.taggerLimitDecrease) TagStatus.taggerLimit = --TagStatus.maxTaggerLimit;
 					else TagStatus.taggerLimit = TagStatus.maxTaggerLimit;
 
-					TagStatus.TagStatus.taggerLimitDecrease = !TagStatus.TagStatus.taggerLimitDecrease;
+					TagStatus.taggerLimitDecrease = !TagStatus.taggerLimitDecrease;
 				}
 			}
 			else return tagEnd();
