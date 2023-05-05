@@ -1,64 +1,44 @@
 import * as mc from '@minecraft/server';
 import { World } from '../../lib/minecraft';
 
-import './tagged';
+import { TagStatus, tagEnd } from './index';
 
 const mcLib = new World("overworld");
 
 
-export class TagStatus {
-	static isExecuting = false;
-	static taggerLimitDecrease = false;
-	static tagger = null;
-	static taggerLimit = 25;
-	static maxTaggerLimit = 25;
-	static deceasedPlayer = [];
-	static get invincibleTick() {
-		return Math.floor(this.maxTaggerLimit / 5) * 20;
+mc.world.events.entityHit.subscribe(ev => {
+	if (TagStatus.isExecuting && ev.hitEntity) {
+		TagStatus.setTagger(ev.hitEntity);
+
+		ev.entity.addEffect(mc.MinecraftEffectTypes.invisibility, TagStatus.invincibleTick, 0, false);
 	}
-	static get isInvincible() {
-		return this.taggerLimit > this.maxTaggerLimit - this.invincibleTick / 20;
+	else return;
+});
+
+mc.system.runInterval(() => {
+	if (TagStatus.isExecuting) {
+		TagStatus.tagger.addEffect(mc.MinecraftEffectTypes.speed, TagStatus.invincibleTick, 1, false);
+		TagStatus.escapingPlayer.forEach(player => player.addEffect(mc.MinecraftEffectTypes.weakness, TagStatus.invincibleTick, 9, false));
+
+		if (!TagStatus.isInvincible) mcLib.runCommands(TagStatus.tagger, "inputpermission set @s movement enabled");
+
+		if (TagStatus.taggerLimit > 0) TagStatus.taggerLimit--;
+		else {
+			TagStatus.tagger.kill();
+			TagStatus.deceasedPlayer.push(TagStatus.tagger);
+
+			if (TagStatus.survivingPlayer.length > 1) {
+				if (TagStatus.taggerLimit > 5) {
+					if (TagStatus.taggerLimitDecrease) TagStatus.taggerLimit = --TagStatus.maxTaggerLimit;
+					else TagStatus.taggerLimit = TagStatus.maxTaggerLimit;
+
+					TagStatus.taggerLimitDecrease = !TagStatus.taggerLimitDecrease;
+				}
+			}
+			else return tagEnd();
+
+			TagStatus.randomlyTagged();
+		}
 	}
-	static get survivingPlayer() {
-		return mcLib.getPlayerList().map(player => this.deceasedPlayer.includes(player) ? null : player).filter(Boolean);
-	}
-	static get escapingPlayer() {
-		return this.survivingPlayer.filter(player => player !== this.tagger);
-	}
-	/**
-	 * @param {mc.Entity} entity
-	 */
-	static setTagger(entity) {
-		this.tagger = entity;
-
-		mcLib.runCommands(mcLib.dimension, "replaceitem entity @a slot.armor.head 0 air 1 0");
-		mcLib.runCommands(entity, "replaceitem entity @s slot.armor.head 0 carved_pumpkin 1 0 {\"minecraft:item_lock\":{\"mode\":\"lock_in_slot\"}}", "inputpermission set @s movement disabled");
-	}
-	static randomlyTagged() {
-		this.setTagger(this.survivingPlayer[Math.floor(Math.random() * this.survivingPlayer.length)]);
-
-		mcLib.runCommands(mcLib.dimension, `say 鬼は${this.tagger.nameTag}です！`);
-	}
-}
-
-export function tagStart() {
-	TagStatus.randomlyTagged();
-	mcLib.getPlayerList().forEach(player => player.teleport(new mc.Vector(130, -59, 50), mcLib.dimension, 0, 0));
-
-	mcLib.getPlayerList().forEach(player => player.addEffect(mc.MinecraftEffectTypes.weakness, 100, 0, false));
-	TagStatus.escapingPlayer.forEach(player => player.addEffect(mc.MinecraftEffectTypes.invisibility, 100, 0, false));
-
-	TagStatus.isExecuting = true;
-}
-export function tagEnd() {
-	TagStatus.isExecuting = false;
-	TagStatus.taggerLimitDecrease = false;
-	TagStatus.tagger = null;
-	TagStatus.taggerLimit = 25;
-	TagStatus.maxTaggerLimit = 25;
-	TagStatus.deceasedPlayer = [];
-
-	mcLib.runCommands(mcLib.dimension, "title @a title Game Over!!", "inputpermission set @a movement enabled", "replaceitem entity @a slot.armor.head 0 air 1 0");
-
-	mcLib.getPlayerList().forEach(player => player.teleport(new mc.Vector(2, -60, 4), mcLib.dimension, 0, 0));
-}
+	else return;
+}, 20);
