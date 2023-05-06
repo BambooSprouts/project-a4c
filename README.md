@@ -1,3 +1,3 @@
 # Games:
-* ### `TAG`
+* ### TAG
 ...and more
