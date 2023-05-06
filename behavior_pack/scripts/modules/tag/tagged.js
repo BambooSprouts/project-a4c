@@ -7,10 +7,11 @@ const mcLib = new World("overworld");
 
 
 mc.world.events.entityHit.subscribe(ev => {
-	if (TagStatus.isExecuting && ev.hitEntity) {
-		TagStatus.setTagger(ev.hitEntity);
+	const { entity, hitEntity } = ev;
+	if (TagStatus.isExecuting && entity === TagStatus.tagger && hitEntity) {
+		TagStatus.setTagger(hitEntity);
 
-		ev.entity.addEffect(mc.MinecraftEffectTypes.invisibility, TagStatus.invincibleTick, 0, false);
+		entity.addEffect(mc.MinecraftEffectTypes.invisibility, TagStatus.invincibleTick, 0, false);
 	}
 	else return;
 });
@@ -27,15 +28,7 @@ mc.system.runInterval(() => {
 			TagStatus.tagger.kill();
 			TagStatus.deceasedPlayer.push(TagStatus.tagger);
 
-			if (TagStatus.survivingPlayer.length > 1) {
-				if (TagStatus.taggerLimit > 5) {
-					if (TagStatus.taggerLimitDecrease) TagStatus.taggerLimit = --TagStatus.maxTaggerLimit;
-					else TagStatus.taggerLimit = TagStatus.maxTaggerLimit;
-
-					TagStatus.taggerLimitDecrease = !TagStatus.taggerLimitDecrease;
-				}
-			}
-			else return tagEnd();
+			if (TagStatus.survivingPlayer.length < 2) return tagEnd();
 
 			TagStatus.randomlyTagged();
 		}
