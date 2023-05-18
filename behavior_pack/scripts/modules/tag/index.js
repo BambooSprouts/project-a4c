@@ -28,43 +28,64 @@ export class TagStatus {
 	/**
 	 * @param {mc.Entity} entity
 	 */
-	static setTagger(entity) {
+	static Tagged(entity) {
+		mcLib.getPlayerList().forEach(player => {
+			player.nameTag = player.name;
+		});
+
 		this.tagger = entity;
+		entity.nameTag = `§l§c>§r §l§f${entity.nameTag}§r §l§c<§r`;
 
 		if (this.taggerLimit > 5 && this.taggerLimitDecrease) this.taggerLimit = --this.maxTaggerLimit;
 		else this.taggerLimit = this.maxTaggerLimit;
 
 		this.taggerLimitDecrease = !this.taggerLimitDecrease;
 
-		mcLib.runCommands(mcLib.dimension, "replaceitem entity @a slot.armor.head 0 air 1 0");
-		mcLib.runCommands(entity, "inputpermission set @s movement disabled")[0].then(e => console.log("ok"));
-		mcLib.runCommands(entity, "replaceitem entity @s slot.armor.head 0 carved_pumpkin 1 0 {\"minecraft:item_lock\":{\"mode\":\"lock_in_slot\"}}");
+		mcLib.runCommands([
+			`title @a title ${this.tagger.nameTag}`,
+			"replaceitem entity @a slot.armor.head 0 air 1 0"
+		]);
+		mcLib.runCommands([
+			"inputpermission set @s movement disabled",
+			"replaceitem entity @s slot.armor.head 0 carved_pumpkin 1 0 {\"minecraft:item_lock\":{\"mode\":\"lock_in_slot\"}}"
+		], entity);
 	}
 	static randomlyTagged() {
-		this.setTagger(this.survivingPlayer[Math.floor(Math.random() * this.survivingPlayer.length)]);
-
-		mcLib.runCommands(mcLib.dimension, `say 鬼は${this.tagger.nameTag}です！`);
+		this.Tagged(this.survivingPlayer[Math.floor(Math.random() * this.survivingPlayer.length)]);
 	}
 }
 
 export function tagStart() {
+	mcLib.runCommands([
+		"gamemode a @a",
+		"title @a times 0 40 0"
+	]);
+	mcLib.getPlayerList().forEach(player => {
+		player.teleport(new mc.Vector(130, -59, 50), mcLib.dimension, 0, 0);
+		player.addEffect(mc.MinecraftEffectTypes.weakness, TagStatus.invincibleTick, 9, false);
+	});
+
 	TagStatus.randomlyTagged();
-	mcLib.getPlayerList().forEach(player => player.teleport(new mc.Vector(130, -59, 50), mcLib.dimension, 0, 0));
-
-	mcLib.getPlayerList().forEach(player => player.addEffect(mc.MinecraftEffectTypes.weakness, 100, 0, false));
 	TagStatus.escapingPlayer.forEach(player => player.addEffect(mc.MinecraftEffectTypes.invisibility, 100, 0, false));
-
 	TagStatus.isExecuting = true;
 }
 export function tagEnd() {
+	mcLib.runCommands([
+		"title @a title §cGame Over!!",
+		`title @a subtitle §fwinner: ${TagStatus.survivingPlayer[0].nameTag}`,
+		"inputpermission set @a movement enabled",
+		"replaceitem entity @a slot.armor.head 0 air 1 0"
+	]);
+	mcLib.getPlayerList().forEach(player => {
+		player.nameTag = player.name;
+	});
+
 	TagStatus.isExecuting = false;
 	TagStatus.taggerLimitDecrease = false;
 	TagStatus.tagger = null;
 	TagStatus.taggerLimit = 25;
 	TagStatus.maxTaggerLimit = 25;
 	TagStatus.deceasedPlayer = [];
-
-	mcLib.runCommands(mcLib.dimension, "title @a title Game Over!!", "inputpermission set @a movement enabled", "replaceitem entity @a slot.armor.head 0 air 1 0");
 
 	mcLib.getPlayerList().forEach(player => player.teleport(new mc.Vector(2, -60, 4), mcLib.dimension, 0, 0));
 }
