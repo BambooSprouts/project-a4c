@@ -1,5 +1,5 @@
 /*!
- * minecraft.js v1.0.2
+ * minecraft.js v1.0.0
  *
  * Copyright (c) 2023 Apedy
  *
@@ -9,6 +9,7 @@
 
 import * as mc from '@minecraft/server';
 
+
 export class World {
 	/**
 	 * @param {string} dimensionId
@@ -17,39 +18,44 @@ export class World {
 		this.dimension = mc.world.getDimension(dimensionId);
 	}
 	/**
-	 * 複数のコマンドを実行します。
-	 * @param {(mc.Player|mc.Dimension)?} caller 実行元
-	 * @param {...string} syntaxes 構文
-	 * @returns {Promise<mc.CommandResult>[]}
+	 * Runs a multiple commands asynchronously.
+	 * @param {string|string[]} syntaxes
+	 * @param {(mc.Player|mc.Dimension)?} caller
+	 * @returns {Promise<mc.CommandResult>|Promise<mc.CommandResult>[]}
 	 */
-	runCommands(caller = this.dimension, ...syntaxes) {
-		return syntaxes.map(syntax => caller.runCommandAsync(syntax));
+	runCommands(syntaxes, caller = this.dimension) {
+		return Array.isArray(syntaxes) ? syntaxes.map(syntax => caller.runCommandAsync(syntax)) : caller.runCommandAsync(syntaxes);
 	}
 	/**
-	 * プレイヤーリストを取得します。
+	 * Returns a customized set of players.
 	 * @param {mc.EntityQueryOptions?} options
 	 * @returns {mc.Player[]}
 	 */
 	getPlayerList(options) {
-		return options ? Array.from(mc.world.getPlayers(options)) : mc.world.getAllPlayers();
+		return options ? mc.world.getPlayers(options) : mc.world.getAllPlayers();
 	}
 	/**
-	 * プレイヤーが手に持っているアイテムを返します。
-	 * @param {mc.Player} player プレイヤー
+	 * Returns the item in the player's selection slot.
+	 * @param {mc.Player} player
 	 * @returns {mc.ItemStack}
 	 */
 	hasItem(player) {
 		return player.getComponent("minecraft:inventory").container.getItem(player.selectedSlot);
 	}
 	/**
-	 * プレイヤーに指定したアイテムを持たせます。
-	 * @param {mc.Player} player プレイヤー
-	 * @param {mc.ItemStack} ItemStack
-	 * @param {?string[]} lore 説明
+	 * Gives items to the player.
+	 * @param {mc.Player} player
+	 * @param {mc.ItemType} item
+	 * @param {{ lore?: string[], nameTag?: string }} option
 	 */
-	giveItem(player, ItemStack, lore = "") {
-		ItemStack.setLore(lore);
-		player.getComponent("minecraft:inventory").container.addItem(ItemStack);
+	giveItem(player, itemType, option) {
+		const item = new mc.ItemStack(itemType);
+		const conv = (content = item.nameTag) => content;
+
+		item.setLore(option?.lore);
+		item.nameTag = conv(option?.nameTag);
+
+		player.getComponent("minecraft:inventory").container.addItem(item);
 	}
 	/**
 	 * Apply motion to the player.
