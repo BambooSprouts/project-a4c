@@ -72,7 +72,7 @@ export function tagStart() {
 export function tagEnd() {
 	mcLib.runCommands([
 		"title @a title §cGame Over!!",
-		`title @a subtitle §fwinner: ${TagStatus.survivingPlayer[0].nameTag}`,
+		`title @a subtitle §fwinner: ${TagStatus.survivingPlayer[0]?.nameTag}`,
 		"inputpermission set @a movement enabled",
 		"replaceitem entity @a slot.armor.head 0 air 1 0"
 	]);
