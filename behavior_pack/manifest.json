@@ -4,7 +4,7 @@
 		"name": "§fProject - §ea4c§r",
 		"description": "@鬼ごっこ, @...and more!",
 		"uuid": "dc69c761-eb58-c5b3-bd2f-6f3c42274eac",
-		"version": [1, 2, 0],
+		"version": [2, 0, 0],
 		"min_engine_version": [1, 19, 80]
 	},
 	"modules": [
@@ -12,7 +12,7 @@
 			"description": "main engine",
 			"type": "script",
 			"uuid": "105d4919-9dac-1f0d-84cc-1cabcfb4db3f",
-			"version": [1, 2, 0],
+			"version": [2, 0, 0],
 			"language": "javascript",
 			"entry": "scripts/index.js"
 		}
